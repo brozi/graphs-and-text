@@ -1,8 +1,9 @@
 import networkx as nx
 import numpy as np
+import pandas as pd
 from collections import defaultdict
 
-def make_graph_authors(X_train, y_train, X_test):
+def make_graph_authors(X_train, y_train, info):
 
     X_train = pd.concat([X_train.ix[:,:2], y_train], axis = 1)
     X_train = X_train.values.astype(int)
