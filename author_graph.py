@@ -48,7 +48,7 @@ def compute_betweeness_authors(sources, targets, graph):
         
     return betweeness
     
-def make_common_neighbors_authors_and_jaccard(sources, targets, G): 
+def make_common_neighbors_authors_and_jaccard(sources, targets, G, info): 
     '''
     Return common_neighbors and jaccard similarity
     '''
@@ -57,25 +57,27 @@ def make_common_neighbors_authors_and_jaccard(sources, targets, G):
     common_neighbors = np.zeros(len(sources))
     jaccard = np.ones(len(sources))
     
+    
+    all_authors = np.unique([item for sublist in info['authors'] for item in sublist])
+    authors_neighbors = {author:G2.neighbors(author) for author in all_authors}
+    
     for i in range(len(sources)):
         authors_source = sources[i]
         authors_target = targets[i]
-        
-        neighbors_from = set()
-        for author in authors_source:
-            neighbors_from |= set(G2.neighbors(author))
-            
-        neighbors_to = set()
-        for author in authors_target:
-            neighbors_to |= set(G2.neighbors(author))
-        
+
+        list_neighbors = [authors_neighbors[author] for author in authors_source]
+        neighbors_from = set().union(*list_neighbors)
+   
+        list_neighbors = [authors_neighbors[author] for author in authors_target]
+        neighbors_to = set().union(*list_neighbors)
+
         inter = len(neighbors_from.intersection(neighbors_to))
         union = len(neighbors_from.union(neighbors_to))
-        
+
         common_neighbors[i] = inter
         if union != 0:
             jaccard[i] = float(inter)/union
-        
+
     return common_neighbors, jaccard
     
 def inlinks_authors(sources, targets, G):
@@ -94,18 +96,22 @@ def inlinks_authors(sources, targets, G):
     
     return diff_max, diff_sum, sum_to, max_to, median_to
     
+
 def create_topologic_features_authors(X, G, info, betweeness = True, common_neigh_and_jacc = True, inlinks = True):
     X_ = X.copy()
     X = X.values.astype(int)
-    authors_source = [info.loc[source]['authors'] for source in X[:,0]]
-    authors_target = [info.loc[target]['authors'] for target in X[:,1]]
-    
+    info_authors = info['authors'].to_dict()
+    authors_source = [info_authors[source] for source in X[:,0]]
+    authors_target = [info_authors[target] for target in X[:,1]]
+
     if betweeness:
         X_['Authors betweeness'] = compute_betweeness_authors(authors_source, authors_target, G)
+    
     if common_neigh_and_jacc:
-        common_neighbors, jaccard = make_common_neighbors_authors_and_jaccard(authors_source, authors_target, G)
+        common_neighbors, jaccard = make_common_neighbors_authors_and_jaccard(authors_source, authors_target, G, info)
         X_['Authors common neighbors'] = common_neighbors
         X_['Authors jaccard'] = jaccard
+    
     if inlinks:
         diff_max, diff_sum, sum_to, max_to, median_to = inlinks_authors(authors_source, authors_target, G)
         X_['Authors max difference in inlinks'] = diff_max
@@ -113,5 +119,5 @@ def create_topologic_features_authors(X, G, info, betweeness = True, common_neig
         X_['Authors max of times to cited'] = sum_to
         X_['Authors sum of times to cited'] = max_to
         X_['Authors  of times to cited'] = median_to
-    
+
     return X_
