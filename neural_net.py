@@ -6,7 +6,7 @@ from sklearn.pipeline import Pipeline
 import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score
-validation = False
+validation = True
 path =""
 if(validation):
     path = "validation_set/"
@@ -32,9 +32,8 @@ nn = MLP(
 layers=[
     Layer("Rectifier", units=100),
     Layer("Rectifier", units=100),
-    Layer("Rectifier", units=100),
         Layer("Softmax")],
-        learning_rule = 'momentum', learning_rate=0.05, batch_size = 100,dropout_rate =0.1,
+        learning_rule = 'momentum', learning_rate=0.005, batch_size = 30,dropout_rate =0.1,
         n_iter=100,
         verbose = 1, 
         valid_size = val_percent, 
