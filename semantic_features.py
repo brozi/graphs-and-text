@@ -57,7 +57,7 @@ def text_to_sentences(text, tokenizer, remove_stopwords=False ):
     # so this returns a list of lists
     return sentences
 
-def load_model(train = False, num_features = 200, min_word_count = 10, num_workers = 4, context = 10, downsampling = 1e-3):
+def load_model(sentences, train = False, num_features = 200, min_word_count = 10, num_workers = 4, context = 10, downsampling = 1e-3):
         # Set values for various parameters
                     
     min_word_count = min_word_count   # Minimum word count                        
@@ -140,7 +140,7 @@ def getAvgFeatureVecs(text_list, model, num_features):
 
         # Increment the counter
         counter = counter + 1.
-    return textFeatureVecs.astype(int)
+    return textFeatureVecs
 
 
 def create_bag_of_centroids( wordlist, word_centroid_map ):
