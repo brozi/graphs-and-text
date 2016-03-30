@@ -15,7 +15,7 @@ def text_to_wordlist(text, remove_stopwords=False ):
     #
     # 1. Remove HTML
     text = BeautifulSoup(text).get_text()
-    #  
+    #
     # 2. Remove non-letters
     text = re.sub("[\W]"," ", text)
     #
@@ -32,14 +32,14 @@ def text_to_wordlist(text, remove_stopwords=False ):
 
 # Download the punkt tokenizer for sentence splitting
 import nltk.data
-nltk.download("punkt")   
+nltk.download("punkt")
 
 # Load the punkt tokenizer
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
 # Define a function to split a review into parsed sentences
 def text_to_sentences(text, tokenizer, remove_stopwords=False ):
-    # Function to split a text into parsed sentences. Returns a 
+    # Function to split a text into parsed sentences. Returns a
     # list of sentences, where each sentence is a list of words
     #
     # 1. Use the NLTK tokenizer to split the paragraph into sentences
@@ -59,15 +59,15 @@ def text_to_sentences(text, tokenizer, remove_stopwords=False ):
 
 def load_model(sentences, train = False, num_features = 200, min_word_count = 10, num_workers = 4, context = 10, downsampling = 1e-3):
         # Set values for various parameters
-                    
-    min_word_count = min_word_count   # Minimum word count                        
+
+    min_word_count = min_word_count   # Minimum word count
     num_workers = num_workers      # Number of threads to run in parallel
-    context = context          # Context window size                                                                                    
+    context = context          # Context window size
     downsampling = downsampling   # Downsample setting for frequent words
 
 
     if train:
-        # Import the built-in logging module and configure it so that Word2Vec 
+        # Import the built-in logging module and configure it so that Word2Vec
         # creates nice output messages
 
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -81,11 +81,11 @@ def load_model(sentences, train = False, num_features = 200, min_word_count = 10
             sentences, workers=num_workers, size=num_features, min_count = min_word_count, window = context, sample = downsampling
         )
 
-        # If you don't plan to train the model any further, calling 
+        # If you don't plan to train the model any further, calling
         # init_sims will make the model much more memory-efficient.
         model.init_sims(replace=True)
 
-        # It can be helpful to create a meaningful model name and 
+        # It can be helpful to create a meaningful model name and
         # save the model for later use. You can load it later using Word2Vec.load()
         model_name = "200features_10minwords_10context"
         model.save(model_name)
@@ -102,32 +102,32 @@ def makeFeatureVec(list_of_words, model, num_features):
     featureVec = np.zeros((num_features,),dtype="float32")
     #
     nwords = 0.
-    # 
-    # Index2word is a list that contains the names of the words in 
-    # the model's vocabulary. Convert it to a set, for speed 
+    #
+    # Index2word is a list that contains the names of the words in
+    # the model's vocabulary. Convert it to a set, for speed
     index2word_set = set(model.index2word)
     #
     # Loop over each word in the review and, if it is in the model's
     # vocaublary, add its feature vector to the total
     for word in list_of_words:
-        if word in index2word_set: 
+        if word in index2word_set:
             nwords = nwords + 1.
             featureVec = np.add(featureVec,model[word])
-    # 
+    #
     # Divide the result by the number of words to get the average
     featureVec = np.divide(featureVec,nwords)
     return featureVec
 
 def getAvgFeatureVecs(text_list, model, num_features):
-    # Given a set of texts (each one a list of words), calculate 
-    # the average feature vector for each one and return a 2D numpy array 
-    # 
+    # Given a set of texts (each one a list of words), calculate
+    # the average feature vector for each one and return a 2D numpy array
+    #
     # Initialize a counter
     counter = 0.
-    # 
+    #
     # Preallocate a 2D numpy array, for speed
     textFeatureVecs = np.zeros((len(text_list),num_features),dtype="float32")
-    # 
+    #
     # Loop through the reviews
     for list_of_words in text_list:
         # Print a status message every 1000th review
@@ -153,7 +153,7 @@ def create_bag_of_centroids( wordlist, word_centroid_map ):
     bag_of_centroids = np.zeros( num_centroids, dtype="float32" )
     #
     # Loop over the words in the review. If the word is in the vocabulary,
-    # find which cluster it belongs to, and increment that cluster count 
+    # find which cluster it belongs to, and increment that cluster count
     # by one
     for word in wordlist:
         if word in word_centroid_map:
@@ -162,3 +162,21 @@ def create_bag_of_centroids( wordlist, word_centroid_map ):
     #
     # Return the "bag of centroids"
     return bag_of_centroids
+
+    ####Jaccard####
+    def jaccard(a, b):
+        """
+        Adapted Jaccard for list of words
+        """
+    if len(a) + len(b) < 1:
+        return 0
+    else :
+        c = set(a).intersection(set(b))
+        return float(len(c)) / (len(set(a)) + len(set(b)) - len(set(c)))
+
+    def compute_jaccard(list_of_words_dic, X):
+        """
+        Applying Jaccard to an array of data
+        """
+        bag=[jaccard(list_of_words_dic[x[0]], list_of_words_dic[x[1]]) for x in X]
+        return np.array(bag)
