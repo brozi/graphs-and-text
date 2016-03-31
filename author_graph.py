@@ -111,16 +111,21 @@ def same_cluster(sources,targets,G):
         same_cluster.append(count)
         A1 = set(sources[i])
         A2 = set(targets[i])
-        same_cluster_jaccard.append(float(len(A.intersection(B)))/len(A.union(B)))
+        same_cluster_jaccard.append(float(len(A1.intersection(A2)))/len(A1.union(A2)))
     return same_cluster,same_cluster_jaccard
     
-    return same_cluster
 def create_topologic_features_authors(X, G, info, betweeness = True, common_neigh_and_jacc = True, inlinks = True,clusters = True):
     X_ = X.copy()
     X = X.values.astype(int)
     info_authors = info['authors'].to_dict()
     authors_source = [info_authors[source] for source in X[:,0]]
     authors_target = [info_authors[target] for target in X[:,1]]
+    if clusters:
+        print "creating cluster features"
+        scluster,jaccard_cluster = same_cluster(authors_source,authors_target,G)
+        X_['Authors Normalized number same cluster'] = scluster
+        X_['Authors clusters jaccard'] = jaccard_cluster
+        print "cluster features created"
     if betweeness:
         X_['Authors betweeness'] = compute_betweeness_authors(authors_source, authors_target, G)
     
@@ -137,8 +142,4 @@ def create_topologic_features_authors(X, G, info, betweeness = True, common_neig
         X_['Authors sum of times to cited'] = max_to
         X_['Authors  of times to cited'] = median_to
         
-    if clusters:
-        scluster,jaccard_cluster = same_cluster(authors_source,authors_target,G)
-        X_['Authors Normalized number same cluster'] = scluster
-        X_['Authors clusters jaccard'] = jaccard_cluster
     return X_
