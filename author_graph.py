@@ -1,4 +1,5 @@
 import networkx as nx
+import community2 as community
 import numpy as np
 import pandas as pd
 from collections import defaultdict
@@ -95,15 +96,31 @@ def inlinks_authors(sources, targets, G):
     diff_sum = sum_to - sum_from
     
     return diff_max, diff_sum, sum_to, max_to, median_to
-    
 
-def create_topologic_features_authors(X, G, info, betweeness = True, common_neigh_and_jacc = True, inlinks = True):
+def same_cluster(sources,targets,G):
+    partition = community.best_partition(G.to_undirected())
+    same_cluster = []
+    same_cluster_jaccard = []
+    for i,source_authors in enumerate(sources):
+        count =0.
+        for author1 in sources[i]:
+            for author2 in targets[i]:
+                if (partition[author1]== partition[author2]):
+                    count+=1.
+        count/= (len(sources[i])*len(targets[i]))
+        same_cluster.append(count)
+        A1 = set(sources[i])
+        A2 = set(targets[i])
+        same_cluster_jaccard.append(float(len(A.intersection(B)))/len(A.union(B)))
+    return same_cluster,same_cluster_jaccard
+    
+    return same_cluster
+def create_topologic_features_authors(X, G, info, betweeness = True, common_neigh_and_jacc = True, inlinks = True,clusters = True):
     X_ = X.copy()
     X = X.values.astype(int)
     info_authors = info['authors'].to_dict()
     authors_source = [info_authors[source] for source in X[:,0]]
     authors_target = [info_authors[target] for target in X[:,1]]
-
     if betweeness:
         X_['Authors betweeness'] = compute_betweeness_authors(authors_source, authors_target, G)
     
@@ -119,5 +136,9 @@ def create_topologic_features_authors(X, G, info, betweeness = True, common_neig
         X_['Authors max of times to cited'] = sum_to
         X_['Authors sum of times to cited'] = max_to
         X_['Authors  of times to cited'] = median_to
-
+        
+    if clusters:
+        scluster,jaccard_cluster = same_cluster(authors_source,authors_target,G)
+        X_['Authors Normalized number same cluster'] = scluster
+        X_['Authors clusters jaccard'] = jaccard_cluster
     return X_
