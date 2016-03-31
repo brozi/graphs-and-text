@@ -103,14 +103,27 @@ def same_cluster(sources,targets,G):
     same_cluster_jaccard = []
     for i,source_authors in enumerate(sources):
         count =0.
-        for author1 in sources[i]:
-            for author2 in targets[i]:
-                if (partition[author1]== partition[author2]):
-                    count+=1.
+        D1= {}
+        D2= {}
+        for x0 in sources[i]:
+            x=partition[x0]
+            if x in D1:
+                D1[x]+=1
+            else:
+                D1[x]=1
+        for x0 in targets[i]:
+            x=partition[x0]
+            if x in D2:
+                D2[x]+=1
+            else:
+                D2[x]=1
+        for x in D1.keys():
+            if x in D2:
+                count+=D1[x]*D2[x]
         count/= (len(sources[i])*len(targets[i]))
         same_cluster.append(count)
-        A1 = set(sources[i])
-        A2 = set(targets[i])
+        A1 = set([partition[source] for source in sources[i]])
+        A2 = set([partition[target] for target in targets[i]])
         same_cluster_jaccard.append(float(len(A1.intersection(A2)))/len(A1.union(A2)))
     return same_cluster,same_cluster_jaccard
     
