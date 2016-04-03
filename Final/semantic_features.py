@@ -163,20 +163,46 @@ def create_bag_of_centroids( wordlist, word_centroid_map ):
     # Return the "bag of centroids"
     return bag_of_centroids
 
-    ####Jaccard####
-    def jaccard(a, b):
-        """
-        Adapted Jaccard for list of words
-        """
+from scipy.spatial.distance import cosine
+
+
+def compute_cosines(centroids_dic, X):
+    bag = []
+    for idx, row in X.iterrows():
+
+        condition = (np.isnan(centroids_dic[row[0]]).any() or np.isnan(centroids_dic[row[1]]).any())
+        if condition:
+            bag.append(0)
+        else:
+            bag.append(cosine(centroids_dic[row[0]], centroids_dic[row[1]]))
+
+    return np.array(bag)
+####Jaccard####
+def jaccard(a, b):
+    """
+    Adapted Jaccard for list of words
+    """
     if len(a) + len(b) < 1:
         return 0
     else :
         c = set(a).intersection(set(b))
         return float(len(c)) / (len(set(a)) + len(set(b)) - len(set(c)))
 
-    def compute_jaccard(list_of_words_dic, X):
-        """
-        Applying Jaccard to an array of data
-        """
-        bag=[jaccard(list_of_words_dic[x[0]], list_of_words_dic[x[1]]) for x in X]
-        return np.array(bag)
+def compute_jaccard(list_of_words_dic, X):
+    """
+    Applying Jaccard to an array of data
+    """
+    bag=[jaccard(list_of_words_dic[x[0]], list_of_words_dic[x[1]]) for x in X]
+    return np.array(bag)
+
+def create_nlp_features(X, centroid_title, centroid_abstract, bag_centroids_abstract, w_l_title, w_l_abstract):
+    X_ = X.copy()
+
+    X_['Jaccard_title'] = compute_jaccard(w_l_title, X.values)
+    X_['Jaccard_abstract'] = compute_jaccard(w_l_abstract, X.values)
+    X_['CosineD_title_centroid'] = compute_cosines(centroid_title,X)
+    X_['CosineD_abstract_centroid'] = compute_cosines(centroid_abstract,X)
+    X_['CosineD_abstract_bag_centroids'] = compute_cosines(bag_centroids_abstract,X)
+
+
+    return X_
