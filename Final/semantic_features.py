@@ -8,6 +8,9 @@ import logging
 from sklearn.cluster import KMeans
 from gensim.models import word2vec
 from gensim.models import Word2Vec
+from scipy.spatial.distance import cosine
+
+#Text pre-processing for word2vec training
 
 def text_to_wordlist(text, remove_stopwords=False ):
     # Function to convert a document to a sequence of words,
@@ -57,6 +60,8 @@ def text_to_sentences(text, tokenizer, remove_stopwords=False ):
     # so this returns a list of lists
     return sentences
 
+
+#word2vec training or loaing (to save time)
 def load_model(sentences, train = False, num_features = 200, min_word_count = 10, num_workers = 4, context = 10, downsampling = 1e-3):
         # Set values for various parameters
 
@@ -94,6 +99,7 @@ def load_model(sentences, train = False, num_features = 200, min_word_count = 10
 
     return model
 
+# Functions to go from text to vectors
 def makeFeatureVec(list_of_words, model, num_features):
     # Function to average all of the word vectors in a given
     # paragraph
@@ -142,7 +148,7 @@ def getAvgFeatureVecs(text_list, model, num_features):
         counter = counter + 1.
     return textFeatureVecs
 
-
+#From text to bag of centroids
 def create_bag_of_centroids( wordlist, word_centroid_map ):
     #
     # The number of clusters is equal to the highest cluster index
@@ -163,9 +169,7 @@ def create_bag_of_centroids( wordlist, word_centroid_map ):
     # Return the "bag of centroids"
     return bag_of_centroids
 
-from scipy.spatial.distance import cosine
-
-
+#How to compute cosines and deal with missing data while doing it
 def compute_cosines(centroids_dic, X):
     bag = []
     for idx, row in X.iterrows():
@@ -177,6 +181,7 @@ def compute_cosines(centroids_dic, X):
             bag.append(cosine(centroids_dic[row[0]], centroids_dic[row[1]]))
 
     return np.array(bag)
+
 ####Jaccard####
 def jaccard(a, b):
     """
@@ -195,7 +200,12 @@ def compute_jaccard(list_of_words_dic, X):
     bag=[jaccard(list_of_words_dic[x[0]], list_of_words_dic[x[1]]) for x in X]
     return np.array(bag)
 
-def create_nlp_features(X, centroid_title, centroid_abstract, bag_centroids_abstract, w_l_title, w_l_abstract):
+def create_nlp_features(
+X, centroid_title, centroid_abstract, bag_centroids_abstract,
+w_l_title, w_l_abstract):
+    """
+    A consolidating function computing all NLP features at once
+    """
     X_ = X.copy()
 
     X_['Jaccard_title'] = compute_jaccard(w_l_title, X.values)
