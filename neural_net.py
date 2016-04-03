@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score
 validation = True
 path =""
 if(validation):
-    path = "validation_set/"
+    path = "validation_set2/"
 else:
     path = "train_set/"
 
@@ -31,7 +31,7 @@ val_percent = 0.1
 nn = MLP(
 layers=[
     Layer("Rectifier", units=100),
-    Layer("Rectifier", units=100),
+    Layer("Tanh", units=100),
         Layer("Softmax")],
         learning_rule = 'momentum', learning_rate=0.005, batch_size = 30,dropout_rate =0.1,
         n_iter=100,
